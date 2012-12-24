@@ -34,17 +34,17 @@ static const float cpusthres[][2] = { {25.,75.},
                                       {50.,75.},
                                       {50.,80.} };
 ```
-1. The first item is an array that contains the name of the cpus that will be monitored;
+1. The first item is an array that contains the names of the cpus that will be monitored;
 2. the second  item is a matrix containing the formats with which the cpu's average load will be printed;
 3. the third item is a matrix containg the thresholds for the different formats.
 
-For example if the load for cpu is < 25 , for cpu0 is > 50 and <75 and for cpu1 is > 80, the output will be
+For example if the load for `cpu` is < 25 , for `cpu0` is > 50 and < 75 and for `cpu1` is > 80, the output will be
 
 ```
 | CPU : LOW%.0f | CPU0: NORM%.0f | CPU1: HIGH%.0f |
 ```
 
-Every other section has a format char array, used to format the output of the data, and optionally a list of interfaces to monitor.
+Every other section has a format `char` array, used to format the output of the data, and optionally a list of the interfaces to monitor.
 
 For example
 ```
@@ -57,30 +57,30 @@ The Print Order
 At the end of the file the order with which all the data will be printed can be set,
 by adding elements to the `porder[]` array. 
 All the possible choices are in the `enum PrintOrder` definition.
-For example, let's assume that one wants to print the Network,Cpu and Memory info in this order.
+For example, let's assume that one wants to print the Network,Cpu and Memory info in such order.
 
 Then porder can be set as follows:
 ```
 static const enum PrintOrder porder[] = {Pnetwork,Pcpus,Pmem};
 ```
 
-The Plsep,Pcsep,Prsep items, will respectively print the strings in `separators[0]`,`separators[1]`,`separators[2]`.
+The `Plsep,Pcsep,Prsep` items, will respectively print the strings in `separators[0]`,`separators[1]`,`separators[2]`.
 
 Defaults
 -------------
 The default config.h prints data formatted for the awesome `bar`, and uses the stlarch_font. Change it as you wish!
 
-The weather script
+The Weather Script
 -------------
 Along with the gumon binary, a weather.sh script is installed.
 Change the `CODE` and `NAME` parameters in the script to the ICAO code and location name of your choice. 
-When called the scripts outputs the temperature for the given location.
-If weather is defined in the config.h file, the script can be called 
-every `WEATHER_TIME` seconds by gumon and the output will be printed.
+When called, the script outputs the temperature for the given location.
+If `WEATHER` is defined in the config.h file, the script can be called 
+every `WEATHER_TIME` seconds by gumon and its output will be printed in the position marked by `Pweather`.
 
 Usage
 -------------
-`gumon` output can be print by passing its output to another program such as `bar` or `dzen2` via pipe.
+`gumon`'s output can be passed to another program, such as `bar` or `dzen2`, via pipe.
 For example: 
 ```
 gumon | bar
