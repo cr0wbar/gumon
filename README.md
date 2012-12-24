@@ -20,19 +20,19 @@ These are the sections available so far:
 + Battery status and remaining percentage (T)
 + Music Player Daemon info (can be removed by undefining MPD in config.h)
 + ALSA mixer status and volume (can be removed by undefining ALSA in config.h)
-+ Outside Temperature obtained via ICAO code (can be removed by undefining WEATHER in config.h)
++ Outside Temperature obtained using an ICAO code (can be removed by undefining WEATHER in config.h)
 
 Every section marked with (T) means that is configured in this way, let's take the CPUs section as an example:
 ```
 static const char *cpus[] = {"cpu","cpu0","cpu1"}; 
 
 static const char *cpusf[][3] = { {"| CPU : LOW%.0f | ","| CPU : NORM%.0f | ","| CPU : HIGH%.0f | "}
-       	     	  	      	  {"CPU0: LOW%.0f | ","CPU0: NORM%.0f | ","CPU0: HIGH%.0f | "},
-       	     	  	      	  {"CPU1: LOW%.0f | ","CPU1: NORM%.0f | ","CPU1: HIGH%.0f | "}};
+                                  {"CPU0: LOW%.0f | ","CPU0: NORM%.0f | ","CPU0: HIGH%.0f | "},
+                                  {"CPU1: LOW%.0f | ","CPU1: NORM%.0f | ","CPU1: HIGH%.0f | "}};
 
 static const float cpusthres[][2] = { {25.,75.},
-       	     	   		      {50.,75.},
-				      {50.,80.} };
+                                      {50.,75.},
+                                      {50.,80.} };
 ```
 1. The first item is an array that contains the name of the cpus that will be monitored;
 2. the second  item is a matrix containing the formats with which the cpu's average load will be printed;
@@ -80,6 +80,8 @@ every `WEATHER_TIME` seconds by gumon and the output will be printed.
 
 Usage
 -------------
+`gumon` output can be print by passing its output to another program such as `bar` or `dzen2` via pipe.
+For example: 
 ```
 gumon | bar
 ```
