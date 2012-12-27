@@ -12,7 +12,7 @@
 #include "config.h"
 
 #define LEN(X)  (sizeof X / sizeof X[0])
-
+#define OFFSET(X) ( (6-X) > 0 ? (6-len) : 0 )
 #ifdef ALSA
 #include <alsa/asoundlib.h>
 #endif
@@ -147,8 +147,8 @@ int SetNetInfo(const char *IFname, struct NetInfo *net){
   net->sent[0] = net->sent[1];
 
   while(fgets(buf,BUF_LEN,fp) != NULL){
-    if( strncmp(IFname,buf + (6-len),len) == 0 ){
-      sscanf(buf+(6-len),"%*s %ld %*d %*d %*d %*d %*d %*d %*d %ld",&(net->recv[1]),&(net->sent[1]));
+    if( strncmp(IFname,buf + OFFSET(len),len) == 0 ){
+      sscanf(buf+ OFFSET(len),"%*s %ld %*d %*d %*d %*d %*d %*d %*d %ld",&(net->recv[1]),&(net->sent[1]));
       net->downspeed = (float)(net->recv[1] - net->recv[0])/(float)(TIMER*1024) ; /*KB*/
       net->upspeed = (float)(net->sent[1] - net->sent[0])/(float)(TIMER*1024); /*KB*/
       fclose(fp);
@@ -188,8 +188,8 @@ int WirelessSS(const char* IFname,int *SS){
   }
 
   while( fgets(buf,BUF_LEN,fp)  != NULL ){
-    if( strncmp(IFname,buf + (6-len),len) == 0 ){
-      sscanf(buf+12,"%d",SS);
+    if( strncmp(IFname,buf + OFFSET(len),len) == 0 ){
+      sscanf(buf,"%*s %*d %d",SS);
       fclose(fp);
       return 1;
     }
