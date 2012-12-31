@@ -13,6 +13,7 @@
 
 #define LEN(X)  (sizeof X / sizeof X[0])
 #define OFFSET(X) ( (6-X) > 0 ? (6-len) : 0 )
+
 #ifdef ALSA
 #include <alsa/asoundlib.h>
 #endif
@@ -27,17 +28,17 @@
 #define SHORT_BUF_LEN 64
 
 struct MemInfo {
-  long int total;
-  long int free;
-  long int buffers;
-  long int cached;
-  long int swaptotal;
-  long int swapfree;
-  long int swapcached;
+  unsigned long int total;
+  unsigned long int free;
+  unsigned long int buffers;
+  unsigned long int cached;
+  unsigned long int swaptotal;
+  unsigned long int swapfree;
+  unsigned long int swapcached;
 };
 
 struct CpuInfo {
-  long int A[4],B[4];
+  unsigned long int A[4],B[4];
   float loadavg;
 }; 
 
@@ -45,16 +46,16 @@ struct TimeInfo {
   time_t t;
   struct tm tm;
   long double uptime;
-  int uptime_days;
-  int uptime_hours;
-  int uptime_minutes;
-  int uptime_seconds;
+  unsigned int uptime_days;
+  unsigned int uptime_hours;
+  unsigned int uptime_minutes;
+  unsigned int uptime_seconds;
   char uptime_nice[5];
 };
 
 struct NetInfo {
-  long int recv[2];
-  long int sent[2];
+  unsigned long int recv[2];
+  unsigned long int sent[2];
   float downspeed; /*KB/s*/
   float upspeed; /*KB/s*/
 };
@@ -66,7 +67,7 @@ struct DiskInfo {
 };
 
 struct DiskIOInfo {
-  long int read[2],write[2];
+  unsigned long int read[2],write[2];
   float read_speed,write_speed;
 };
 
@@ -90,8 +91,8 @@ struct MpdInfo {
 
 struct BatteryInfo{
   char status[16];
-  long int charge_full;
-  long int charge_now;
+  unsigned long int charge_full;
+  unsigned long int charge_now;
 };
 
 int SetMemInfo(struct MemInfo *mem){
@@ -105,28 +106,28 @@ int SetMemInfo(struct MemInfo *mem){
 
   while(fgets(buf,BUF_LEN,fp) != NULL){
     if( strncmp("MemTotal",buf,8) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->total));
+      sscanf(buf+9,"%lu",&(mem->total));
     }
     else if( strncmp("MemFree",buf,7) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->free));
+      sscanf(buf+8,"%lu",&(mem->free));
     }
     else if( strncmp("Buffers",buf,7) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->buffers));
+      sscanf(buf+8,"%lu",&(mem->buffers));
     }
     else if( strncmp("Cached",buf,6) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->cached));
+      sscanf(buf+7,"%lu",&(mem->cached));
     }
     else if( strncmp("Buffers",buf,7) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->buffers));
+      sscanf(buf+8,"%lu",&(mem->buffers));
     }
     else if( strncmp("SwapCached",buf,10) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->swapcached));
+      sscanf(buf+11,"%lu",&(mem->swapcached));
     }
     else if( strncmp("SwapTotal",buf,9) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->swaptotal));
+      sscanf(buf+10,"%lu",&(mem->swaptotal));
     }
     else if( strncmp("SwapFree",buf,8) == 0 ){
-      sscanf(buf,"%*s %ld",&(mem->swapfree));
+      sscanf(buf+9,"%lu",&(mem->swapfree));
     }
   }
   fclose(fp);
@@ -137,7 +138,7 @@ int SetNetInfo(const char *IFname, struct NetInfo *net){
   FILE *fp;
   char buf[BUF_LEN];
   int len = strlen(IFname);
-
+  unsigned long int prova;
   if( (fp = fopen("/proc/net/dev","r")) == NULL ){
     fprintf(stderr,"ERR: can't open /proc/net/route\n");
     exit(EXIT_FAILURE);
@@ -148,7 +149,7 @@ int SetNetInfo(const char *IFname, struct NetInfo *net){
 
   while(fgets(buf,BUF_LEN,fp) != NULL){
     if( strncmp(IFname,buf + OFFSET(len),len) == 0 ){
-      sscanf(buf+ OFFSET(len),"%*s %ld %*d %*d %*d %*d %*d %*d %*d %ld",&(net->recv[1]),&(net->sent[1]));
+      sscanf(buf+ OFFSET(len) + len + 1,"%lu %*d %*d %*d %*d %*d %*d %*d %lu",&(net->recv[1]),&(net->sent[1]));
       net->downspeed = (float)(net->recv[1] - net->recv[0])/(float)(TIMER*1024) ; /*KB*/
       net->upspeed = (float)(net->sent[1] - net->sent[0])/(float)(TIMER*1024); /*KB*/
       fclose(fp);
@@ -189,7 +190,7 @@ int WirelessSS(const char* IFname,int *SS){
 
   while( fgets(buf,BUF_LEN,fp)  != NULL ){
     if( strncmp(IFname,buf + OFFSET(len),len) == 0 ){
-      sscanf(buf,"%*s %*d %d",SS);
+      sscanf(buf + OFFSET(len) + len +1,"%*d %d",SS);
       fclose(fp);
       return 1;
     }
@@ -202,20 +203,20 @@ int WirelessSS(const char* IFname,int *SS){
 int SetCpuInfo(const char *cpuname,struct CpuInfo *cpu){
   FILE *fp;
   char buf[BUF_LEN];
-  int i;
 
   if( (fp = fopen("/proc/stat","r")) == NULL ){
     fprintf(stderr,"ERR: can't open /proc/stat\n");
     exit(EXIT_FAILURE);
   }
-
-  for(i=0;i<4;i++){
-    cpu->A[i] = cpu->B[i];
-  }
+  
+  cpu->A[0] = cpu->B[0];
+  cpu->A[1] = cpu->B[1];
+  cpu->A[2] = cpu->B[2];
+  cpu->A[3] = cpu->B[3];
 
   while( fgets(buf,BUF_LEN,fp) != NULL){
     if(strncmp(cpuname,buf,strlen(cpuname)) == 0){
-      sscanf(buf,"%*s %ld %ld %ld %ld",&(cpu->B[0]),&(cpu->B[1]),&(cpu->B[2]),&(cpu->B[3]));
+      sscanf(buf+strlen(cpuname),"%lu %lu %lu %lu",&(cpu->B[0]),&(cpu->B[1]),&(cpu->B[2]),&(cpu->B[3]));
       cpu->loadavg = (float)(cpu->B[0]+cpu->B[1]+cpu->B[2]-cpu->A[0]-cpu->A[1]-cpu->A[2])/(float)(cpu->B[0]+cpu->B[1]+cpu->B[2]+cpu->B[3]-cpu->A[0]-cpu->A[1]-cpu->A[2]-cpu->A[3]);
       fclose(fp);
       return 1;
@@ -256,15 +257,14 @@ int SetDiskIOInfo(const char *dev,const char *root,struct DiskIOInfo *data){
   
   while( fgets(buf,BUF_LEN,fp) !=NULL ){
     if(strncmp(dev,buf+13,strlen(dev))==0){
-      sscanf(buf+13,"%*s %*d %*d %ld %*d %*d %*d %ld",&(data->read[1]),&(data->write[1]));
+      sscanf(buf+13+strlen(dev)," %*d %*d %lu %*d %*d %*d %lu",&(data->read[1]),&(data->write[1]));
+      fclose(fp);
+      data->read_speed = (float)(ssize*(data->read[1] - data->read[0]))/(1048576.*TIMER); /*MB*/
+      data->write_speed = (float)(ssize*(data->write[1] - data->write[0]))/(1048576.*TIMER); /*MB*/
+      return 1;
     }
   }
-  fclose(fp);
-  
-  data->read_speed = (float)(ssize*(data->read[1] - data->read[0]))/(1048576.*TIMER); /*MB*/
-  data->write_speed = (float)(ssize*(data->write[1] - data->write[0]))/(1048576.*TIMER); /*MB*/
-
-  return 1;
+  return 0;
 
 }
 
@@ -278,10 +278,10 @@ int SetTimeInfo(struct TimeInfo *crono){
   fscanf(fp,"%Lf",&(crono->uptime));
   fclose(fp);
 
-  crono->uptime_days = (int)(crono->uptime/86400.);
-  crono->uptime_hours = (int)((crono->uptime - (long double)(crono->uptime_days*86400))/3600.); 
-  crono->uptime_minutes = (int)((crono->uptime - (long double)(crono->uptime_days*86400 + crono->uptime_hours*3600))/60.);
-  crono->uptime_seconds = (int)((crono->uptime - (long double)(crono->uptime_days*86400 + crono->uptime_hours*3600 + crono->uptime_minutes*60)));
+  crono->uptime_days = (unsigned int)(crono->uptime/86400.);
+  crono->uptime_hours = (unsigned int)((crono->uptime - (long double)(crono->uptime_days*86400))/3600.); 
+  crono->uptime_minutes = (unsigned int)((crono->uptime - (long double)(crono->uptime_days*86400 + crono->uptime_hours*3600))/60.);
+  crono->uptime_seconds = (unsigned int)((crono->uptime - (long double)(crono->uptime_days*86400 + crono->uptime_hours*3600 + crono->uptime_minutes*60)));
 
   crono->t = time(NULL);
   crono->tm = *localtime(&(crono->t));
