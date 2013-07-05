@@ -89,11 +89,14 @@ struct MpdInfo {
 };
 #endif
 
+#ifdef BATTERY
 struct BatteryInfo{
   char status[16];
   unsigned long int charge_full;
   unsigned long int charge_now;
+  float charge_percentage;
 };
+#endif
 
 int SetMemInfo(struct MemInfo *mem){
   char buf[BUF_LEN];
@@ -430,6 +433,7 @@ void MpdConnChanged(MpdObj *mi, int connect,int *MpdIsConnected){
 
 #endif
 
+#ifdef BATTERY
 int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
   FILE *fp;
   char filename[BUF_LEN];
@@ -449,7 +453,10 @@ int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
   }
   fscanf(fp,"%ld",&(bat->charge_full));
   fclose(fp);
-
+  bat->charge_percentage = 100.*(float)bat->charge_now/(float)bat->charge_full;
+  if(bat->charge_percentage > 100.){
+    bat->charge_percentage = 100; //Overflow protection :))
+  }
   sprintf(filename,"/sys/class/power_supply/%s/status",BATNAME);
   if( (fp = fopen(filename,"r")) == NULL ){
     fprintf(stderr,"ERR: Can't open %s\n",filename);
@@ -459,6 +466,7 @@ int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
   fclose(fp);
   return 1;
 }
+#endif
 
 #ifdef WEATHER
 void ReadWeather(char *buf, const int buf_len,const char* cmd){
@@ -497,9 +505,13 @@ int main(void){
   static struct DiskIOInfo data_diskiodevs[LEN(diskIOdevs)];
   static float data_temps[LEN(temperatures)];
   static struct TimeInfo data_crono;
-  static struct BatteryInfo data_battery;
   static char temp_buf[SHORT_BUF_LEN];
-  
+
+#ifdef BATTERY
+  static struct BatteryInfo data_battery;
+  static int bat_counter = 0,bat_result;
+#endif
+
 #ifdef ALSA
 static struct VolumeInfo data_volume;
   if( !InitVolumeInfo(&data_volume) ){
@@ -610,21 +622,29 @@ static struct VolumeInfo data_volume;
 		100.*(float)(data_volume.vol-data_volume.min)/(float)(data_volume.max-data_volume.min));
 	break;	
 #endif
-	
+
+#ifdef BATTERY	
 	/*Battery data&print*/
       case Pbattery:
-	if( SetBatteryInfo(battery,&data_battery) ){
-	  fprintf(stdout,batteryf[ThresSelect(100.*(float)(data_battery.charge_now)/(float)(data_battery.charge_full),batterythres)],
-		  data_battery.status,
-		  (float)(data_battery.charge_now)/(float)(data_battery.charge_full)*100.);
+	if(!(bat_counter%BATTERY_TIMER) ){
+	  bat_result = SetBatteryInfo(battery,&data_battery);
+	  bat_counter = 0;
 	}
+	if(bat_result){
+	  fprintf(stdout,
+		  batteryf[ThresSelect(data_battery.charge_percentage,batterythres)],
+		  data_battery.status,
+		  data_battery.charge_percentage);
+	}
+	bat_counter++;
 	break;
-	
+#endif	
+
 #ifdef WEATHER
 	/*Weather data&print*/
       case Pweather:
 	if(!(ext_counter%WEATHER_TIMER)){
-	  ext_counter = 1;
+	  ext_counter = 0;
 	  ReadWeather(weather,SHORT_BUF_LEN,"weather.sh");
 	}  
 	fputs(weather,stdout);

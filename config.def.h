@@ -5,7 +5,13 @@
 
 #define ALSA /*If defined it monitors a mixer status and volume*/
 
+#define BATTERY /*If defined it monitors the battery*/
+
 #define TIMER 1 /*Update the data every TIMER seconds*/
+
+#ifdef BATTERY
+#define BATTERY_TIMER 100 /*Update the Battery data every BATTERY_TIMER seconds*/
+#endif
 
 #ifdef MPD
 #define MPD_PORT 6600
@@ -99,12 +105,14 @@ static const char mpdnormf[] = "\\f3\\fr \\f3%s\\fr \\f5%s\\fr | "; /*Mpd sta
 static const char mpdstopf[] = "\\f3\\fr \\f6%s\\fr  | "; /*Mpd status format when stopped*/
 #endif
 
+#ifdef BATTERY
 /*BATTERY*/
 static const char battery[] = "BAT0"; /*folder in /sys/class/power_supply */
 static const char *batteryf[3] = {"\\f3\\fr %s \\u6\\f6%.2f\\ur\\fr | ",
 				  "\\f3\\fr %s \\u5\\f5%.2f\\ur\\fr | ",
 				  "\\f3\\fr %s \\f4%.2f\\fr | "}; /*Battery Formats*/
 static const float batterythres[2] = {25.,50.}; /*Battery Thresholds (percentage)*/
+#endif
 
 /*Separators*/
 static const char *separators[] ={"\\l","\\c","\\r"}; /* Left,Central and Right separators*/
@@ -126,7 +134,9 @@ enum PrintOrder {
 #ifdef MPD
   Pmpd,
 #endif
+#ifdef BATTERY
   Pbattery,
+#endif
 #ifdef WEATHER
   Pweather,
 #endif
