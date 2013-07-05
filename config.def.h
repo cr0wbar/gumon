@@ -158,4 +158,4 @@ enum PrintOrder {
 };
 
 /*Here the print order is set*/
-static const enum PrintOrder porder[] = {Pcpus,Pmem,Pmountpoints,PdiskIO,Pnetwork,Pcsep,Pvolume,Pmpd,Prsep,Ptemperatures,Pweather,Ptime,Puptime};
+static const enum PrintOrder porder[] = {Pcpuload,Pmem,Pmountpoints,PdiskIO,Pnetwork,Pcsep,Pvolume,Pmpd,Prsep,Ptemperatures,Pweather,Ptime,Puptime};
