@@ -29,11 +29,22 @@
 #endif
 
 /*CPUs*/
-static const char *cpus[] = {"cpu"}; /*cpus in /proc/cpustats to monitor*/
-static const char *cpusf[][3] = { {"| \\f3\\fr \\f4%.0f\\fr | ",           
+static const char *cpus_load[] = {"cpu"}; /*cpus in /proc/cpustats to monitor*/
+static const char *cpusf_load[][3] = { {"| \\f3\\fr \\f4%.0f\\fr | ",           
 				   "| \\f3\\fr \\u5\\f5%.0f\\ur\\fr | ",
 				   "| \\f3\\fr \\u6\\f6%.0f\\ur\\fr | "}}; /*CPUs format [Low,Norm,High]*/
-static const float cpusthres[][2] = { {25.,75.} };
+static const float cpusthres_load[][2] = { {25.,75.} };
+
+static const char *cpus_freq[] = {"0","1"};
+static const char * cpusf_freq[][3] =  { {"\\f4%.0f\\fr | ",           
+					  " \\u5\\f5%.0f\\ur\\fr | ",
+					  " \\u6\\f6%.0f\\ur\\fr | "},
+					 {"\\f4%.0f\\fr | ",           
+					  " \\u5\\f5%.0f\\ur\\fr | ",
+					  " \\u6\\f6%.0f\\ur\\fr | "} };
+
+static const float cpusthres_freq[][2] = { {1000.,1600.},
+					   {1000.,1600.}};
 
 /*MEM&SWAP*/
 static const char memf[] = "\\f3\\fr \\f4%.1f %.0lfMB\\fr | "; /*Memory format*/
@@ -122,7 +133,8 @@ enum PrintOrder {
   Plsep,
   Pcsep,
   Prsep,
-  Pcpus,
+  Pcpuload,
+  Pcpufreq,
   Pmem,
   Pswap,
   Pmountpoints,

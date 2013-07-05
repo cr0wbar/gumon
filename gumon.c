@@ -37,7 +37,7 @@ struct MemInfo {
   unsigned long int swapcached;
 };
 
-struct CpuInfo {
+struct CpuLoad {
   unsigned long int A[4],B[4];
   float loadavg;
 }; 
@@ -56,14 +56,14 @@ struct TimeInfo {
 struct NetInfo {
   unsigned long int recv[2];
   unsigned long int sent[2];
-  float downspeed; /*KB/s*/
-  float upspeed; /*KB/s*/
+  float downspeed; /* KB/s */
+  float upspeed; /* KB/s */
 };
 
 struct DiskInfo {
-  float avail; /*GB*/
-  float total; /*GB*/
-  struct statvfs data; /*RAW DATA*/
+  float avail; /* GB */
+  float total; /* GB */
+  struct statvfs data; /* RAW DATA */
 };
 
 struct DiskIOInfo {
@@ -203,7 +203,7 @@ int WirelessSS(const char* IFname,int *SS){
 
 }
 
-int SetCpuInfo(const char *cpuname,struct CpuInfo *cpu){
+int SetCpuLoad(const char *cpuname,struct CpuLoad *cpu){
   FILE *fp;
   char buf[BUF_LEN];
 
@@ -226,7 +226,35 @@ int SetCpuInfo(const char *cpuname,struct CpuInfo *cpu){
     }
   }
   fclose(fp);
+
   return 0;
+
+}
+
+int SetCpuFreq(const char *cpuindex,float *freq){
+
+  FILE *fp;
+  char buf[BUF_LEN];
+  int flag = 0;
+
+  if( (fp = fopen("/proc/cpuinfo","r")) == NULL ){
+    fprintf(stderr,"ERR: can't open /proc/cpuinfo\n");
+    exit(EXIT_FAILURE);
+  }
+
+  while(fgets(buf,BUF_LEN,fp) != NULL){
+    if( strncmp(buf,"processor",9) == 0 && strncmp(cpuindex,buf+12,1) == 0 )
+      flag=1;
+    else if( strncmp("cpu MHz",buf,7) == 0 && flag ){
+      sscanf(buf+10,"%f",freq);
+      fclose(fp);
+      return 1;
+    }
+  }
+
+  fclose(fp);
+  return 0;
+
 }
 
 int SetDiskInfo(const char *path, struct DiskInfo *disk){
@@ -498,7 +526,8 @@ int ThresSelect(const float value,const float thres[2]){
 int main(void){
 
   static int i,j,SS;
-  static struct CpuInfo data_cpus[LEN(cpus)];
+  static struct CpuLoad data_cpus_load[LEN(cpus_load)];
+  static float data_cpus_freq[LEN(cpus_freq)];
   static struct NetInfo data_netIFS[LEN(netIFS)];
   static struct MemInfo data_mem;
   static struct DiskInfo data_mountpoints[LEN(mountpoints)];
@@ -548,10 +577,17 @@ static struct VolumeInfo data_volume;
       switch(porder[j]){
 
 	/*CPUs data&print*/
-      case Pcpus:
-	for(i=0;i<LEN(cpus);i++){
-	  SetCpuInfo(cpus[i],&data_cpus[i]);
-	  fprintf(stdout,cpusf[i][ThresSelect(data_cpus[i].loadavg*100.,cpusthres[i])],100.*data_cpus[i].loadavg);
+      case Pcpuload:
+	for(i=0;i<LEN(cpus_load);i++){
+	  SetCpuLoad(cpus_load[i],&data_cpus_load[i]);
+	  fprintf(stdout,cpusf_load[i][ThresSelect(data_cpus_load[i].loadavg*100.,cpusthres_load[i])],100.*data_cpus_load[i].loadavg);
+	}
+	break;
+
+      case Pcpufreq:
+	for(i=0;i<LEN(cpus_freq);i++){
+	  SetCpuFreq(cpus_freq[i],&data_cpus_freq[i]);
+	  fprintf(stdout,cpusf_freq[i][ThresSelect(data_cpus_freq[i],cpusthres_freq[i])],data_cpus_freq[i]);
 	}
 	break;
 
