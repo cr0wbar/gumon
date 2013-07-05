@@ -5,7 +5,7 @@
 
 #define ALSA /*If defined it monitors a mixer status and volume*/
 
-#define BATTERY /*If defined it monitors the battery*/
+#define NOBATTERY /*If defined it monitors the battery*/
 
 #define TIMER 1 /*Update the data every TIMER seconds*/
 
