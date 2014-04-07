@@ -36,7 +36,6 @@ clean:
 install: gumon
 	test -d ${DESTDIR}${BINDIR} || mkdir -p ${DESTDIR}${BINDIR}
 	install -m755 gumon ${DESTDIR}${BINDIR}/gumon
-	install -m755 weather.sh ${DESTDIR}${BINDIR}/weather.sh
 
 uninstall:
 	rm -f ${DESTDIR}${BINDIR}/gumon

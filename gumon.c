@@ -24,8 +24,8 @@
 #define MPD_STATUS_BUF_LEN 4
 #endif
 
-#define BUF_LEN 128
-#define SHORT_BUF_LEN 64
+#define BUF_LEN 256
+#define SHORT_BUF_LEN 128 
 
 struct MemInfo {
   unsigned long int total;
@@ -496,22 +496,6 @@ int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
 }
 #endif
 
-#ifdef WEATHER
-void ReadWeather(char *buf, const int buf_len,const char* cmd){
-  FILE *pipe = popen(cmd,"r");
-  if (!pipe){
-    fprintf (stderr,"ERR:Opening a pipe failed.\n");
-    exit(EXIT_FAILURE);
-  }
-  fgets(buf,buf_len,pipe);
-  if (pclose(pipe) != 0){
-    fprintf (stderr,"ERR:Could not run '%s', or other error.\n",cmd);
-    exit(EXIT_FAILURE);
-  }
-  buf[strlen(buf)-1] = '\0'; //Removes newline
-}
-#endif
-
 int ThresSelect(const float value,const float thres[2]){
 
   if( value < thres[0]){
@@ -547,11 +531,6 @@ static struct VolumeInfo data_volume;
     fprintf(stderr,"ERR: can't initialize connection with ALSA mixer.\n");
     exit(EXIT_FAILURE);
   }
-#endif
-
-#ifdef WEATHER
-  static char weather [SHORT_BUF_LEN];
-  static int ext_counter = 0;
 #endif
 
 #ifdef MPD
@@ -675,18 +654,6 @@ static struct VolumeInfo data_volume;
 	bat_counter++;
 	break;
 #endif	
-
-#ifdef WEATHER
-	/*Weather data&print*/
-      case Pweather:
-	if(!(ext_counter%WEATHER_TIMER)){
-	  ext_counter = 0;
-	  ReadWeather(weather,SHORT_BUF_LEN,"weather.sh");
-	}  
-	fputs(weather,stdout);
-	ext_counter++;
-	break;
-#endif
 	
 #ifdef MPD
 	/*MPD data&print*/

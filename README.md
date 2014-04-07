@@ -20,7 +20,6 @@ These are the sections available so far:
 + Battery status and remaining percentage (T)
 + Music Player Daemon info (can be removed by undefining MPD in config.h)
 + ALSA mixer status and volume (can be removed by undefining ALSA in config.h)
-+ Outside Temperature obtained using an ICAO code (can be removed by undefining WEATHER in config.h)
 
 Every section marked with (T) means that is configured in this way, let's take the CPUs section as an example:
 ```
