@@ -69,14 +69,6 @@ Defaults
 -------------
 The default config.h prints data formatted for the awesome `bar`, and uses the stlarch_font. Change it as you wish!
 
-The Weather Script
--------------
-Along with the gumon binary, a weather.sh script is installed.
-Change the `CODE` and `NAME` parameters in the script to the ICAO code and location name of your choice. 
-When called, the script outputs the temperature for the given location.
-If `WEATHER` is defined in the config.h file, the script can be called 
-every `WEATHER_TIME` seconds by gumon and its output will be printed in the position marked by `Pweather`.
-
 Usage
 -------------
 `gumon`'s output can be passed to another program, such as `bar` or `dzen2`, via pipe.

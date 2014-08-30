@@ -334,7 +334,7 @@ int SetTemperatures(const char *filename,float *temp){
   FILE *fp;
   char buf[BUF_LEN];
 
-  strcpy(buf,"/sys/devices/platform/coretemp.0/");
+  strcpy(buf,"/sys/bus/platform/drivers/coretemp/coretemp.0/hwmon/hwmon0/");
   strcat(buf,filename);
   if( (fp = fopen(buf,"r")) == NULL ){
     fprintf(stderr,"ERR:couldn't open %s\n",buf);
@@ -466,7 +466,7 @@ int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
   FILE *fp;
   char filename[BUF_LEN];
   
-  sprintf(filename,"/sys/class/power_supply/%s/charge_now",BATNAME);
+  sprintf(filename,"/sys/class/power_supply/%s/energy_now",BATNAME);
   if( (fp = fopen(filename,"r")) == NULL ){
     fprintf(stderr,"ERR: Can't open %s\n",filename);
     return 0;
@@ -474,7 +474,7 @@ int SetBatteryInfo(const char *BATNAME,struct BatteryInfo *bat){
   fscanf(fp,"%ld",&(bat->charge_now));
   fclose(fp);
 
-  sprintf(filename,"/sys/class/power_supply/%s/charge_full",BATNAME);
+  sprintf(filename,"/sys/class/power_supply/%s/energy_full",BATNAME);
   if( (fp = fopen(filename,"r")) == NULL ){
     fprintf(stderr,"ERR: Can't open %s\n",filename);
     return 0;
