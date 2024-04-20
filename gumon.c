@@ -8,6 +8,8 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <errno.h>
 
 #include "config.h"
 
@@ -333,22 +335,36 @@ int SetTimeInfo(struct TimeInfo *crono){
 int SetTemperatures(const char *filename,float *temp){
   FILE *fp;
   char buf[BUF_LEN];
-
-  strcpy(buf,"/sys/bus/platform/drivers/coretemp/coretemp.0/hwmon/hwmon0/");
-  strcat(buf,filename);
-  if( (fp = fopen(buf,"r")) == NULL ){
-    fprintf(stderr,"ERR:couldn't open %s\n",buf);
-    return 0;
+  int i;
+  for(i=0;i<10;i++) {
+    char candidateDir[BUF_LEN];
+    sprintf(candidateDir,"/sys/devices/platform/coretemp.0/hwmon/hwmon%d/",i); 
+    DIR *dir = opendir(candidateDir);
+    if (dir) {
+      closedir(dir);
+      strcpy(buf,candidateDir);
+      strcat(buf,filename);
+      if( (fp = fopen(buf,"r")) == NULL ){
+	fprintf(stderr,"ERR:couldn't open %s\n",buf);
+	return 0;
+      }
+      if( fgets(buf,BUF_LEN,fp) == NULL){
+	fclose(fp);
+	fprintf(stderr,"ERR:empty temperature file\n");
+	return 0;
+      }
+      fclose(fp);
+      sscanf(buf,"%f",temp);
+      *temp/=1000.;
+      return 1;
+    } else if (ENOENT == errno) {
+      continue;
+    } else {
+      fprintf(stderr, "ERR:opening directory %s\n",buf);
+      return 0;
+    }
   }
-  if( fgets(buf,BUF_LEN,fp) == NULL){
-    fclose(fp);
-    fprintf(stderr,"ERR:empty temperature file\n");
-    return 0;
-  }
-  fclose(fp);
-  sscanf(buf,"%f",temp);
-  *temp/=1000.;
-  return 1;
+  return 0;
 }
 
 #ifdef ALSA
@@ -620,10 +636,10 @@ static struct VolumeInfo data_volume;
 		    netIFSfup[i][ThresSelect(data_netIFS[i].upspeed,netIFSuthres[i])],
 		    data_netIFS[i].upspeed);
 	  }
-	  if(WirelessSS(netIFS[i],&SS)){
+	  /*if(WirelessSS(netIFS[i],&SS)){
 	    sprintf(temp_buf,WSSf,(float)SS/70.);
 	    fputs(temp_buf,stdout);
-	  }
+	    }*/
 	}
 	break;
 
